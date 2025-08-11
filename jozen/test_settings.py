@@ -20,6 +20,14 @@ DATABASES = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
+    'handlers': {
+        'null': {
+            'class': 'logging.NullHandler',
+        },
+    },
+    'root': {
+        'handlers': ['null'],
+    },
 }
 
 # Use in-memory cache for testing
