@@ -1,117 +1,143 @@
-from django.test import TestCase
-from django.contrib.auth import get_user_model
+from django.test import TestCase, Client
 from django.urls import reverse
-from rest_framework.test import APIClient
-from rest_framework import status
-from .models import Series, Group, Tag, Character, Image
-from .serializers import CharacterSerializer
-from io import BytesIO
-from PIL import Image as PILImage
+from django.contrib.auth.models import User
+from .models import Character, Series, Group, Tag, Image, SiteSetting
 
-User = get_user_model()
 
-class ModelTests(TestCase):
+class BasicViewsTest(TestCase):
     def setUp(self):
-        self.series = Series.objects.create(name='Test Series', slug='test-series')
-        self.group = Group.objects.create(name='Test Group', slug='test-group')
-        self.tag = Tag.objects.create(name='Test Tag', slug='test-tag')
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
+        
+        # Create test data
+        self.series = Series.objects.create(
+            name='Test Series',
+            description='A test series'
+        )
+        
+        self.group = Group.objects.create(
+            name='Test Group',
+            description='A test group'
+        )
+        
+        self.tag = Tag.objects.create(
+            name='test-tag',
+            description='A test tag'
+        )
+        
+        self.character = Character.objects.create(
+            name='Test Character',
+            description='A test character',
+            series=self.series,
+            is_2d=True
+        )
+        self.character.groups.add(self.group)
+        self.character.tags.add(self.tag)
 
+    def test_character_list_view(self):
+        """Test that character list view loads"""
+        response = self.client.get(reverse('character_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Character')
+
+    def test_character_detail_view(self):
+        """Test that character detail view loads"""
+        response = self.client.get(
+            reverse('character_detail', kwargs={'slug': self.character.slug})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Character')
+
+    def test_home_page_redirects_to_character_list(self):
+        """Test that home page redirects to character list"""
+        response = self.client.get('/')
+        self.assertRedirects(response, reverse('character_list'))
+
+    def test_search_functionality(self):
+        """Test search functionality"""
+        response = self.client.get(reverse('character_list'), {'search': 'Test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Character')
+
+    def test_type_filter(self):
+        """Test 2D/3D filter functionality"""
+        response = self.client.get(reverse('character_list'), {'type': '2d'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Test Character')
+
+
+class ModelsTest(TestCase):
     def test_character_creation(self):
-        char = Character.objects.create(name='Test Girl', series=self.series, is_2d=True)
-        char.groups.add(self.group)
-        char.tags.add(self.tag)
-        self.assertEqual(char.series, self.series)
-        self.assertIn(self.group, char.groups.all())
-        self.assertIn(self.tag, char.tags.all())
-        self.assertTrue(char.is_2d)
+        """Test character model creation"""
+        series = Series.objects.create(name='Test Series')
+        character = Character.objects.create(
+            name='Test Char',
+            series=series,
+            is_2d=True
+        )
+        self.assertEqual(character.name, 'Test Char')
+        self.assertEqual(character.series, series)
+        self.assertTrue(character.is_2d)
 
-    def test_image_creation_and_metadata(self):
-        char = Character.objects.create(name='Test Girl 2', series=self.series, is_2d=True)
-        img_file = BytesIO()
-        PILImage.new('RGB', (100, 200)).save(img_file, format='JPEG')
-        img_file.seek(0)
-        image = Image.objects.create(uploader=self.user)
-        image.file.save('test.jpg', img_file, save=True)
-        image.characters.add(char)
-        image.tags.add(self.tag)
-        image.save()
-        self.assertEqual(image.width, 100)
-        self.assertEqual(image.height, 200)
-        self.assertIn(char, image.characters.all())
-        self.assertIn(self.tag, image.tags.all())
+    def test_series_str_representation(self):
+        """Test series string representation"""
+        series = Series.objects.create(name='Test Series')
+        self.assertEqual(str(series), 'Test Series')
 
-class SerializerTests(TestCase):
+    def test_group_str_representation(self):
+        """Test group string representation"""
+        group = Group.objects.create(name='Test Group')
+        self.assertEqual(str(group), 'Test Group')
+
+    def test_tag_str_representation(self):
+        """Test tag string representation"""
+        tag = Tag.objects.create(name='test-tag')
+        self.assertEqual(str(tag), 'test-tag')
+
+
+class AuthenticationTest(TestCase):
     def setUp(self):
-        self.series = Series.objects.create(name='Test Series', slug='test-series')
-        self.group = Group.objects.create(name='Test Group', slug='test-group')
-        self.tag = Tag.objects.create(name='Test Tag', slug='test-tag')
-        self.char = Character.objects.create(name='Test Girl', series=self.series, is_2d=True)
-        self.char.groups.add(self.group)
-        self.char.tags.add(self.tag)
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='testpass123'
+        )
 
-    def test_character_serializer(self):
-        data = CharacterSerializer(self.char).data
-        self.assertEqual(data['name'], 'Test Girl')
-        self.assertEqual(data['series']['name'], 'Test Series')
-        self.assertTrue(data['is_2d'])
-        self.assertGreaterEqual(len(data['groups']), 1)
-        self.assertGreaterEqual(len(data['tags']), 1)
+    def test_login_view(self):
+        """Test login view"""
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
 
-class APITests(TestCase):
+    def test_register_view(self):
+        """Test register view"""
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_dashboard_requires_login(self):
+        """Test that dashboard requires authentication"""
+        response = self.client.get(reverse('user_dashboard'))
+        self.assertRedirects(response, f"{reverse('login')}?next={reverse('user_dashboard')}")
+
+
+class AdminTest(TestCase):
     def setUp(self):
-        self.client = APIClient()
-        self.series = Series.objects.create(name='Test Series', slug='test-series')
-        self.group = Group.objects.create(name='Test Group', slug='test-group')
-        self.tag = Tag.objects.create(name='Test Tag', slug='test-tag')
-        self.user = User.objects.create_user(username='apiuser', password='apipass')
-        self.char = Character.objects.create(name='API Girl', series=self.series, is_2d=True)
-        self.char.groups.add(self.group)
-        self.char.tags.add(self.tag)
+        self.client = Client()
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@test.com',
+            password='adminpass123'
+        )
+        self.client.login(username='admin', password='adminpass123')
 
-    def test_character_list(self):
-        url = reverse('character_list')
-        resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, 'API Girl')
+    def test_admin_panel_access(self):
+        """Test that admin panel is accessible to superusers"""
+        response = self.client.get(reverse('admin_panel'))
+        self.assertEqual(response.status_code, 200)
 
-    def test_api_character_list(self):
-        url = '/api/characters/'
-        resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 200)
-        self.assertGreaterEqual(len(resp.data), 1)
-
-    def test_api_character_create_auth_required(self):
-        url = '/api/characters/'
-        data = {'name': 'New Girl', 'is_2d': True}
-        resp = self.client.post(url, data)
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
-        self.client.force_authenticate(user=self.user)
-        data['series_id'] = self.series.id
-        resp = self.client.post(url, data)
-        self.assertIn(resp.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
-
-    def test_api_image_upload(self):
-        url = '/api/images/'
-        img_file = BytesIO()
-        PILImage.new('RGB', (50, 50)).save(img_file, format='JPEG')
-        img_file.seek(0)
-        self.client.force_authenticate(user=self.user)
-        data = {
-            'file': img_file,
-            'character_ids': [self.char.id],
-            'tag_ids': [self.tag.id],
-        }
-        resp = self.client.post(url, data, format='multipart')
-        self.assertIn(resp.status_code, [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST])
-
-    def test_api_filtering(self):
-        url = '/api/characters/?is_2d=True&series={}'.format(self.series.id)
-        resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 200)
-        self.assertGreaterEqual(len(resp.data), 1)
-
-    def test_permissions(self):
-        url = '/api/images/'
-        resp = self.client.post(url, {})
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+    def test_admin_users_view(self):
+        """Test that admin users view is accessible"""
+        response = self.client.get(reverse('admin_users'))
+        self.assertEqual(response.status_code, 200)

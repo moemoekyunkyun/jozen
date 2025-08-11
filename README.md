@@ -2,6 +2,10 @@
 
 A Django-based web application for managing and displaying anime character galleries with image uploads, tagging, and user management.
 
+[![Django CI/CD](https://github.com/moemoekyunkyun/Jozen/workflows/Django%20CI%2FCD/badge.svg)](https://github.com/moemoekyunkyun/Jozen/actions/workflows/django.yml)
+[![Docker Build](https://github.com/moemoekyunkyun/Jozen/workflows/Docker%20Build%20and%20Test/badge.svg)](https://github.com/moemoekyunkyun/Jozen/actions/workflows/docker.yml)
+[![Code Coverage](https://codecov.io/gh/moemoekyunkyun/Jozen/branch/main/graph/badge.svg)](https://codecov.io/gh/moemoekyunkyun/Jozen)
+
 ## Features
 
 - **Character Management**: Create, edit, and organize anime characters with detailed profiles
@@ -45,6 +49,23 @@ open http://localhost:8000
 ### Production Deployment
 See [PRODUCTION.md](PRODUCTION.md) for detailed production deployment instructions.
 
+## CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing, building, and deployment:
+
+### Automated Workflows
+- **Django CI/CD**: Runs tests, linting, security checks, and coverage reporting
+- **Docker Build**: Builds and tests Docker containers, publishes to GitHub Container Registry
+- **Security Scanning**: Automated vulnerability scanning with Trivy and Bandit
+
+### Code Quality
+- **Testing**: pytest with Django integration and coverage reporting
+- **Linting**: Black (formatting), isort (imports), Flake8 (style)
+- **Security**: Bandit (security linting), Safety (dependency security)
+- **Coverage**: Minimum 60% test coverage required
+
+For detailed workflow information, see [.github/workflows/README.md](.github/workflows/README.md).
+
 ## Project Structure
 
 ```
@@ -57,7 +78,11 @@ booru/
 ├── docker-compose.yml    # Docker services configuration
 ├── Dockerfile            # Web service container
 ├── nginx.conf           # Nginx configuration
-└── requirements.txt      # Python dependencies
+├── requirements.txt      # Python dependencies
+├── requirements-dev.txt  # Development dependencies
+├── pytest.ini          # Test configuration
+├── .pre-commit-config.yaml # Code quality hooks
+└── .github/workflows/   # GitHub Actions workflows
 ```
 
 ## Environment Variables
@@ -86,13 +111,51 @@ DJANGO_DB_PASSWORD=your-password
 - `GET /api/series/` - List series
 - `GET /api/groups/` - List groups
 
+## Development
+
+### Running Tests
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=onnanoko --cov=jozen
+```
+
+### Code Quality
+```bash
+# Format code
+black .
+isort .
+
+# Check style
+flake8 .
+
+# Security checks
+bandit -r .
+safety check
+```
+
+### Pre-commit Hooks
+```bash
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Ensure code quality checks pass
+6. Submit a pull request
 
 ## Security
 
@@ -101,6 +164,7 @@ DJANGO_DB_PASSWORD=your-password
 - HSTS support
 - Secure cookie settings (when SSL enabled)
 - User permission system
+- Automated security scanning in CI/CD
 
 ## License
 
@@ -111,6 +175,7 @@ DJANGO_DB_PASSWORD=your-password
 For issues and questions:
 - Check the logs: `docker compose logs`
 - Review [PRODUCTION.md](PRODUCTION.md)
+- Check [CI/CD documentation](.github/workflows/README.md)
 - Open an issue on GitHub
 
 ## Roadmap
