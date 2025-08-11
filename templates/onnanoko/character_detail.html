@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Breadcrumbs -->
+    {% include 'breadcrumbs.html' %}
+
+    <!-- Main Character Profile -->
+    <div class="glass p-8 rounded-lg mb-8">
+      <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Character Image -->
+        <div class="flex-shrink-0 lg:w-1/3">
+          <div class="relative group">
+            {% if character.primary_image %}
+              <img src="{{ character.primary_image.url }}" alt="{{ character.name }}" 
+                   class="rounded-lg w-full h-auto object-cover shadow-lg max-h-96 cursor-pointer"
+                   onclick="openLightbox('{{ character.primary_image.url }}')" />
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all rounded-lg flex items-center justify-center">
+                <div class="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+              </div>
+            {% else %}
+              <div class="w-full h-96 bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center rounded-lg">
+                <svg class="w-20 h-20 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            {% endif %}
+
+            <!-- Character Type Badge -->
+            <div class="absolute top-4 left-4">
+              <span class="pill {{ character.is_2d|yesno:'pill-pink,pill-blue' }} text-sm">
+                {{ character.is_2d|yesno:"2D Character,3D Character" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Character Info -->
+        <div class="flex-1 space-y-6">
+          <!-- Header -->
+          <div>
+            <h1 class="text-4xl font-bold mb-2">{{ character.name }}</h1>
+            {% if character.series %}
+            <div class="flex items-center text-lg opacity-75 mb-4">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2h4a1 1 0 011 1v14a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1h4z"></path>
+              </svg>
+              <a href="{% url 'series_explore' character.series.slug %}" class="hover:underline">{{ character.series.name }}</a>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% if character.age %}
+            <div class="glass p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-blue-400">{{ character.age }}</div>
+              <div class="text-sm opacity-75">years old</div>
+            </div>
+            {% endif %}
+            {% if character.height_cm %}
+            <div class="glass p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-green-400">{{ character.height_cm|floatformat:"0" }}</div>
+              <div class="text-sm opacity-75">cm tall</div>
+            </div>
+            {% endif %}
+            {% if character.weight_kg %}
+            <div class="glass p-4 rounded-lg text-center">
+              <div class="text-2xl font-bold text-purple-400">{{ character.weight_kg|floatformat:"0" }}</div>
+              <div class="text-sm opacity-75">kg</div>
+            </div>
+            {% endif %}
+            {% if character.bust_cm and character.waist_cm and character.hips_cm %}
+            <div class="glass p-4 rounded-lg text-center">
+              <div class="text-lg font-bold text-pink-400">{{ character.bust_cm|floatformat:"0" }}/{{ character.waist_cm|floatformat:"0" }}/{{ character.hips_cm|floatformat:"0" }}</div>
+              <div class="text-sm opacity-75">measurements</div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Groups and Tags -->
+          <div class="space-y-4">
+            {% if character.groups.exists %}
+            <div>
+              <h3 class="font-semibold text-lg mb-2 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Groups
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                {% for group in character.groups.all %}
+                  <a href="{% url 'group_explore' group.slug %}" class="pill pill-blue hover:scale-105 transition-transform">{{ group.name }}</a>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if character.tags.exists %}
+            <div>
+              <h3 class="font-semibold text-lg mb-2 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                Tags
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                {% for tag in character.tags.all %}
+                  <a href="{% url 'tag_explore' tag.slug %}" class="pill pill-pink hover:scale-105 transition-transform">{{ tag.name }}</a>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          {% if character.description %}
+          <div>
+            <h3 class="font-semibold text-lg mb-2">About</h3>
+            <div class="prose prose-sm max-w-none opacity-90">
+              {{ character.description|linebreaks }}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Actions -->
+          <div class="flex gap-3 pt-4">
+            {% if perms.onnanoko.change_character %}
+            <a href="{% url 'character_edit' character.slug %}" class="btn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Edit Character
+            </a>
+            {% endif %}
+            <a href="{% url 'character_list' %}" class="btn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+              Back to Characters
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Related Characters -->
+    {% if other_girls %}
+    <div class="glass p-6 rounded-lg mb-8">
+      <h2 class="text-2xl font-bold mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        Related Characters
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {% for girl in other_girls|slice:":12" %}
+        <div class="group">
+          <a href="{% url 'character_detail' girl.slug %}" class="block">
+            <div class="glass rounded-lg overflow-hidden hover:scale-105 transition-all duration-300">
+              {% if girl.primary_image %}
+                <img src="{{ girl.primary_image.url }}" alt="{{ girl.name }}" 
+                     class="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-500" />
+              {% else %}
+                <div class="w-full h-32 bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700 flex items-center justify-center">
+                  <svg class="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                  </svg>
+                </div>
+              {% endif %}
+              <div class="p-3">
+                <h3 class="font-semibold text-sm truncate">{{ girl.name }}</h3>
+                {% if girl.series %}
+                <p class="text-xs opacity-75 truncate">{{ girl.series.name }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      {% if other_girls|length > 12 %}
+      <div class="text-center mt-4">
+        <a href="{% url 'character_list' %}?group={{ character.groups.first.id }}" class="btn">
+          View All Related Characters
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Character Gallery -->
+    <div class="glass p-6 rounded-lg">
+      <h2 class="text-2xl font-bold mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        Character Gallery
+        <span class="ml-2 text-sm opacity-75">({{ character.images.count }} images)</span>
+      </h2>
+      {% if character.images.exists %}
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {% for image in character.images.all %}
+        <div class="group relative">
+          <div class="glass rounded-lg overflow-hidden aspect-square cursor-pointer hover:scale-105 transition-all duration-300"
+               onclick="openLightbox('{{ image.file.url }}')">
+            <img src="{{ image.file.url }}" 
+                 alt="Character image {{ forloop.counter }}" 
+                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                 loading="lazy" />
+            
+            <!-- Hover Overlay -->
+            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+              <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Image Info -->
+            {% if image.illustrator %}
+            <div class="absolute bottom-0 left-0 right-0 glass-caption p-2">
+              <div class="text-xs opacity-75">Illustrated by {{ image.illustrator }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Image Actions -->
+            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <a href="{% url 'image_detail' image.pk %}" 
+                 class="bg-blue-500/80 hover:bg-blue-500 text-white p-1 rounded text-xs"
+                 onclick="event.stopPropagation()">
+                View
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="text-center mt-6">
+        <a href="{% url 'image_gallery' %}?character={{ character.slug }}" class="btn">
+          View All Images
+        </a>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        <h3 class="text-lg font-semibold mb-2">No Images Yet</h3>
+        <p class="opacity-75 mb-4">No images have been uploaded for this character.</p>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'image_upload' %}" class="btn">Upload Images</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Enhanced Lightbox Modal -->
+<div id="lightboxModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 hidden" 
+     role="dialog" aria-modal="true" aria-label="Image lightbox" onclick="closeLightbox()">
+  <div class="relative max-w-[95vw] max-h-[95vh]" onclick="event.stopPropagation()">
+    <!-- Close Button -->
+    <button onclick="closeLightbox()" 
+            class="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors" 
+            aria-label="Close">
+      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Image -->
+    <img id="lightboxImg" src="" alt="Large preview" 
+         class="max-h-[90vh] max-w-[90vw] rounded-lg shadow-2xl object-contain" />
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Page-specific tweaks if necessary */
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openLightbox(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxModal').classList.remove('hidden');
+  document.getElementById('lightboxModal').focus();
+}
+function closeLightbox() {
+  document.getElementById('lightboxModal').classList.add('hidden');
+  document.getElementById('lightboxImg').src = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightboxModal').classList.contains('hidden') && (e.key === 'Escape' || e.key === 'Esc')) {
+    closeLightbox();
+  }
+});
+</script>
+{% endblock %}

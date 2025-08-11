@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">User Management</h1>
+      <div class="flex gap-2">
+        <a href="{% url 'admin_panel' %}" class="btn">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="glass p-6 rounded-lg mb-6">
+      <form method="get" class="flex gap-4">
+        <input type="text" name="search" value="{{ request.GET.search }}" 
+               placeholder="Search users by username, email, or name..." 
+               class="flex-1">
+        <button type="submit" class="btn">Search</button>
+        {% if request.GET.search %}
+        <a href="{% url 'admin_users' %}" class="btn">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+
+    <!-- Users Table -->
+    <div class="glass rounded-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-white/5">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">User</th>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">Email</th>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">Status</th>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">Uploads</th>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">Joined</th>
+              <th class="px-6 py-4 text-left text-sm font-medium opacity-75">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10">
+            {% for user in users %}
+            <tr class="hover:bg-white/5 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                    {{ user.username|first|upper }}
+                  </div>
+                  <div>
+                    <div class="font-medium">{{ user.username }}</div>
+                    {% if user.first_name or user.last_name %}
+                    <div class="text-sm opacity-75">{{ user.first_name }} {{ user.last_name }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm">{{ user.email|default:"—" }}</td>
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1">
+                  {% if user.is_superuser %}
+                  <span class="pill bg-red-500/20 text-red-300">Superuser</span>
+                  {% elif user.is_staff %}
+                  <span class="pill bg-blue-500/20 text-blue-300">Staff</span>
+                  {% endif %}
+                  {% if not user.is_active %}
+                  <span class="pill bg-gray-500/20 text-gray-300">Inactive</span>
+                  {% else %}
+                  <span class="pill bg-green-500/20 text-green-300">Active</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm">{{ user.upload_count }}</td>
+              <td class="px-6 py-4 text-sm">{{ user.date_joined|date:"M d, Y" }}</td>
+              <td class="px-6 py-4">
+                <div class="flex gap-2">
+                  <a href="{% url 'admin_user_edit' user.pk %}" class="btn-small">Edit</a>
+                  {% if user != request.user and not user.is_superuser or request.user.is_superuser %}
+                  <form method="post" action="{% url 'admin_user_delete' user.pk %}" 
+                        onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?')" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-small bg-red-500/20 text-red-300 hover:bg-red-500/30">Delete</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                {% if request.GET.search %}
+                No users found matching "{{ request.GET.search }}".
+                {% else %}
+                No users found.
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <div class="px-6 py-4 border-t border-white/10 flex items-center justify-between">
+        <div class="text-sm opacity-75">
+          Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users
+        </div>
+        <div class="flex gap-2">
+          {% if page_obj.has_previous %}
+          <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.previous_page_number }}" class="btn-small">Previous</a>
+          {% endif %}
+          {% if page_obj.has_next %}
+          <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.next_page_number }}" class="btn-small">Next</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.btn-small {
+  @apply px-3 py-1 text-sm rounded bg-white/10 hover:bg-white/20 transition-colors;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% if breadcrumbs %}
+<nav class="mb-6" aria-label="Breadcrumb">
+  <div class="glass px-4 py-3 rounded-lg">
+    <ol class="flex items-center space-x-2 text-sm">
+      {% for crumb in breadcrumbs %}
+        {% if forloop.last %}
+          <li class="flex items-center">
+            <svg class="w-4 h-4 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {{ crumb.icon|default:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' }}
+            </svg>
+            <span class="font-medium text-blue-400">{{ crumb.title }}</span>
+          </li>
+        {% else %}
+          <li class="flex items-center">
+            {% if crumb.url %}
+              <a href="{{ crumb.url }}" class="flex items-center hover:text-blue-400 transition-colors">
+                <svg class="w-4 h-4 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {{ crumb.icon|default:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' }}
+                </svg>
+                {{ crumb.title }}
+              </a>
+            {% else %}
+              <span class="flex items-center">
+                <svg class="w-4 h-4 mr-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {{ crumb.icon|default:'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>' }}
+                </svg>
+                {{ crumb.title }}
+              </span>
+            {% endif %}
+            <svg class="w-4 h-4 mx-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+  </div>
+</nav>
+{% endif %}

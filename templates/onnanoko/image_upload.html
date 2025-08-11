@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <div class="max-w-3xl mx-auto glass p-6 rounded-lg">
+    <h1 class="text-2xl font-bold mb-4">Upload Images</h1>
+    {% if success %}
+      {% if auto_approved %}
+        <div class="bg-green-100 text-green-800 p-2 rounded mb-4">Upload successful! Your images are live.</div>
+      {% else %}
+        <div class="bg-yellow-100 text-yellow-800 p-2 rounded mb-4">Upload successful! Your images await approval.</div>
+      {% endif %}
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="block font-semibold mb-2">Image file(s)</label>
+          <div id="dropzone" class="dropzone">
+            <div>
+              <div class="text-lg font-semibold mb-1">Drag & Drop images here</div>
+              <div class="muted">or click to browse</div>
+            </div>
+            <input id="file-input" type="file" name="files" multiple class="hidden" />
+          </div>
+          <div id="file-helper" class="muted mt-2"></div>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block font-semibold mb-2">Characters</label>
+          <div id="char-picker" class="picker space-y-2">
+            <input id="char-search" type="text" placeholder="Search characters…" class="w-full" autocomplete="off" />
+            <div id="char-pills" class="flex flex-wrap gap-2 mt-1"></div>
+            <div id="char-results" class="results glass p-2 rounded hidden max-h-48 overflow-auto mt-2 w-full"></div>
+          </div>
+          <div class="hidden">{{ form.characters }}</div>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block font-semibold mb-2">Tags</label>
+          <div id="tag-picker" class="picker space-y-2">
+            <input id="tag-search" type="text" placeholder="Search tags…" class="w-full" autocomplete="off" />
+            <div id="tag-pills" class="flex flex-wrap gap-2 mt-1"></div>
+            <div id="tag-results" class="results glass p-2 rounded hidden max-h-48 overflow-auto mt-2 w-full"></div>
+          </div>
+          <div class="hidden">{{ form.tags }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Illustrator</label>
+          {{ form.illustrator }}
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Description</label>
+          {{ form.description }}
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="btn">Upload</button>
+        <a href="{% url 'image_gallery' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+    {% if form.errors %}
+      <div class="bg-red-100 text-red-800 p-2 rounded mt-4">
+        {{ form.errors }}
+      </div>
+    {% endif %}
+    {% if errors %}
+      <div class="bg-red-100 text-red-800 p-2 rounded mt-4">
+        <ul>
+        {% for error in errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function createMultiPickerByElement(selectEl, inputId, pillsId, resultsId) {
+  if (!selectEl) return;
+  const inputEl = document.getElementById(inputId);
+  const pillsEl = document.getElementById(pillsId);
+  const resultsEl = document.getElementById(resultsId);
+  if (!inputEl || !pillsEl || !resultsEl) return;
+
+  const options = Array.from(selectEl.options).map(o => ({value: o.value, label: o.text, option: o}));
+
+  function renderPills() {
+    pillsEl.innerHTML = '';
+    Array.from(selectEl.selectedOptions).forEach(o => {
+      const pill = document.createElement('span');
+      pill.className = 'pill';
+      pill.textContent = '− ' + o.text;
+      pill.style.cursor = 'pointer';
+      pill.title = 'Click to remove';
+      pill.addEventListener('click', () => { o.selected = false; renderPills(); renderResults(inputEl.value); });
+      pillsEl.appendChild(pill);
+    });
+  }
+
+  function renderResults(filter) {
+    const q = (filter || '').toLowerCase().trim();
+    const base = options.filter(x => !x.option.selected && (q === '' || x.label.toLowerCase().includes(q)));
+    const limit = q === '' ? 8 : 50;
+    const matches = base.slice(0, limit);
+    resultsEl.innerHTML = '';
+    if (matches.length === 0) { resultsEl.classList.add('hidden'); return; }
+    matches.forEach(m => {
+      const pill = document.createElement('span');
+      pill.role = 'button'; pill.tabIndex = 0;
+      pill.className = 'pill';
+      pill.textContent = '+ ' + m.label;
+      pill.style.cursor = 'pointer';
+      pill.addEventListener('click', () => { m.option.selected = true; renderPills(); renderResults(inputEl.value); });
+      pill.addEventListener('keydown', (e) => { if (e.key === 'Enter') pill.click(); });
+      resultsEl.appendChild(pill);
+    });
+    if (q === '') {
+      resultsEl.classList.add('compact');
+    } else {
+      resultsEl.classList.remove('compact');
+    }
+    resultsEl.classList.remove('hidden');
+  }
+
+  inputEl.addEventListener('input', () => renderResults(inputEl.value));
+  inputEl.addEventListener('focus', () => renderResults(inputEl.value));
+  document.addEventListener('click', (e) => { if (!resultsEl.contains(e.target) && e.target !== inputEl) resultsEl.classList.add('hidden'); });
+
+  renderPills();
+  renderResults('');
+}
+
+function initDropzone() {
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('file-input');
+  const helper = document.getElementById('file-helper');
+  if (!dz || !input) return;
+  function updateHelper() {
+    if (input.files && input.files.length) {
+      helper.textContent = `${input.files.length} file(s) selected`;
+    } else { helper.textContent = ''; }
+  }
+  dz.addEventListener('click', () => input.click());
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    const dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+    input.files = dt.files; updateHelper();
+  });
+  input.addEventListener('change', updateHelper);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  createMultiPickerByElement(document.querySelector('select[name="characters"]'), 'char-search', 'char-pills', 'char-results');
+  createMultiPickerByElement(document.querySelector('select[name="tags"]'), 'tag-search', 'tag-pills', 'tag-results');
+  initDropzone();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dropzone { display:flex; align-items:center; justify-content:center; text-align:center; border:2px dashed rgba(255,255,255,0.35); border-radius:16px; padding:28px; height:160px; background:linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)); cursor:pointer; }
+.dropzone.drag-over { border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,0.25) inset; }
+
+.picker { position: relative; }
+.results.compact { white-space: nowrap; overflow-x: auto; overflow-y: hidden; display:block; padding-bottom: 6px; }
+.results:not(.compact) { display:block; }
+.results.hidden { display: none !important; }
+.results .pill { margin-right:.35rem; margin-bottom:0; }
+</style>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% if is_paginated %}
+<div class="flex items-center justify-center mt-8">
+  <div class="glass p-4 rounded-lg">
+    <nav class="flex items-center gap-2" aria-label="Pagination">
+      {% if page_obj.has_previous %}
+        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+           class="btn">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Previous
+        </a>
+      {% else %}
+        <span class="btn opacity-50 cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          Previous
+        </span>
+      {% endif %}
+
+      <div class="flex items-center gap-2 mx-4">
+        <!-- Page Numbers -->
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+            <span class="px-3 py-2 bg-blue-500/20 text-blue-300 rounded font-semibold">{{ num }}</span>
+          {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+               class="px-3 py-2 hover:bg-white/10 rounded transition-colors">{{ num }}</a>
+          {% elif num == 1 or num == page_obj.paginator.num_pages %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+               class="px-3 py-2 hover:bg-white/10 rounded transition-colors">{{ num }}</a>
+          {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+            <span class="px-2">…</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if page_obj.has_next %}
+        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+           class="btn">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      {% else %}
+        <span class="btn opacity-50 cursor-not-allowed">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </span>
+      {% endif %}
+    </nav>
+    
+    <div class="text-center text-sm opacity-75 mt-2">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} 
+      ({{ page_obj.paginator.count }} total)
+    </div>
+  </div>
+</div>
+{% endif %}

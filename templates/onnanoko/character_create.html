@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-3xl mx-auto glass p-6 rounded-lg">
+    <h1 class="text-2xl font-bold mb-4">Create New Girl</h1>
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block mb-1">Name</label>
+          {{ form.name }}
+        </div>
+        <div class="flex items-end gap-2">
+          <label class="block mb-1">2D</label>
+          {{ form.is_2d }}
+        </div>
+        <div>
+          <label class="block mb-1">Series</label>
+          {{ form.series }}
+        </div>
+        <div>
+          <label class="block mb-1">Groups</label>
+          {{ form.groups }}
+        </div>
+        <div class="md:col-span-2">
+          <label class="block font-semibold mb-2">Tags</label>
+          <div id="cg-tag-picker" class="picker space-y-2">
+            <input id="cg-tag-search" type="text" placeholder="Search tags…" class="w-full" autocomplete="off" />
+            <div id="cg-tag-pills" class="flex flex-wrap gap-2 mt-1"></div>
+            <div id="cg-tag-results" class="results glass p-2 rounded hidden max-h-48 overflow-auto mt-2 w-full"></div>
+          </div>
+          <div class="hidden">{{ form.tags }}</div>
+        </div>
+        <div>
+          <label class="block mb-1">Birth Date</label>
+          {{ form.birth_date }}
+        </div>
+        <div>
+          <label class="block mb-1">Age</label>
+          {{ form.age }}
+        </div>
+        <div>
+          <label class="block mb-1">Height (cm)</label>
+          {{ form.height_cm }}
+        </div>
+        <div>
+          <label class="block mb-1">Weight (kg)</label>
+          {{ form.weight_kg }}
+        </div>
+        <div>
+          <label class="block mb-1">Bust (cm)</label>
+          {{ form.bust_cm }}
+        </div>
+        <div>
+          <label class="block mb-1">Waist (cm)</label>
+          {{ form.waist_cm }}
+        </div>
+        <div>
+          <label class="block mb-1">Hips (cm)</label>
+          {{ form.hips_cm }}
+        </div>
+      </div>
+      <div>
+        <label class="block mb-1">Description</label>
+        {{ form.description }}
+      </div>
+      <div>
+        <label class="block font-semibold mb-2">Primary Image</label>
+        <div id="cg-dropzone" class="dropzone">
+          <div>
+            <div class="text-lg font-semibold mb-1">Drag & Drop image here</div>
+            <div class="muted">or click to browse</div>
+          </div>
+          {{ form.primary_image }}
+        </div>
+        <div id="cg-file-helper" class="muted mt-2"></div>
+      </div>
+      <div class="flex gap-3">
+        <button type="submit" class="btn">Create</button>
+        <a href="{% url 'character_list' %}" class="btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function createTagPicker(selectEl, inputId, pillsId, resultsId) {
+  if (!selectEl) return;
+  const inputEl = document.getElementById(inputId);
+  const pillsEl = document.getElementById(pillsId);
+  const resultsEl = document.getElementById(resultsId);
+  const options = Array.from(selectEl.options).map(o => ({value:o.value, label:o.text, option:o}));
+  function renderPills(){
+    pillsEl.innerHTML='';
+    Array.from(selectEl.selectedOptions).forEach(o=>{
+      const pill=document.createElement('span'); pill.className='pill'; pill.textContent='− '+o.text; pill.style.cursor='pointer';
+      pill.addEventListener('click', ()=>{o.selected=false; renderPills(); renderResults(inputEl.value);});
+      pillsEl.appendChild(pill);
+    });
+  }
+  function renderResults(filter){
+    const q=(filter||'').toLowerCase();
+    const base=options.filter(x=>!x.option.selected && (q===''||x.label.toLowerCase().includes(q)));
+    const limit=q===''?8:50; const matches=base.slice(0,limit);
+    resultsEl.innerHTML=''; if(matches.length===0){resultsEl.classList.add('hidden');return;}
+    matches.forEach(m=>{ const pill=document.createElement('span'); pill.className='pill'; pill.textContent='+ '+m.label; pill.style.cursor='pointer'; pill.addEventListener('click',()=>{m.option.selected=true; renderPills(); renderResults(inputEl.value);}); resultsEl.appendChild(pill); });
+    if(q===''){resultsEl.classList.add('compact');}else{resultsEl.classList.remove('compact');}
+    resultsEl.classList.remove('hidden');
+  }
+  inputEl.addEventListener('input',()=>renderResults(inputEl.value));
+  inputEl.addEventListener('focus',()=>renderResults(inputEl.value));
+  document.addEventListener('click',(e)=>{ if(!resultsEl.contains(e.target)&&e.target!==inputEl) resultsEl.classList.add('hidden'); });
+  renderPills(); renderResults('');
+}
+function initCGDrop(){
+  const dz=document.getElementById('cg-dropzone'); const input=dz.querySelector('input[type="file"]'); const helper=document.getElementById('cg-file-helper');
+  if(!dz||!input)return; function update(){ helper.textContent=input.files&&input.files.length? `${input.files.length} file selected` : ''; }
+  dz.addEventListener('click',()=> input.click());
+  dz.addEventListener('dragover',(e)=>{ e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave',()=> dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',(e)=>{ e.preventDefault(); dz.classList.remove('drag-over'); const dt=new DataTransfer(); Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f)); input.files=dt.files; update();});
+  input.addEventListener('change',update);
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  createTagPicker(document.querySelector('select[name="tags"]'),'cg-tag-search','cg-tag-pills','cg-tag-results');
+  initCGDrop();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dropzone { display:flex; align-items:center; justify-content:center; text-align:center; border:2px dashed rgba(255,255,255,0.35); border-radius:16px; padding:28px; height:160px; background:linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)); cursor:pointer; }
+.dropzone.drag-over { border-color:#60a5fa; box-shadow:0 0 0 3px rgba(96,165,250,0.25) inset; }
+.dropzone input[type="file"] { display:none; }
+.picker { position: relative; }
+.results.compact { white-space: nowrap; overflow-x: auto; overflow-y: hidden; display:block; padding-bottom: 6px; }
+.results.hidden { display: none !important; }
+.results .pill { margin-right:.35rem; margin-bottom:0; }
+</style>
+{% endblock %}

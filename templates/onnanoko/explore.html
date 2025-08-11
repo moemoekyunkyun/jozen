@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+  <h1 class="text-2xl font-bold mb-4">{{ title }}</h1>
+
+  <h2 class="text-xl font-semibold mb-2">Characters</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    {% for character in characters %}
+    <div class="glass rounded-lg overflow-hidden shadow-lg flex flex-col">
+      <div class="relative">
+        {% if character.primary_image %}
+          <div class="h-48 overflow-hidden">
+            <img src="{{ character.primary_image.url }}" alt="{{ character.name }}" class="w-full h-full object-cover" loading="lazy" />
+          </div>
+        {% else %}
+          <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-400">No Image</div>
+        {% endif %}
+        <div class="absolute bottom-0 left-0 right-0 glass-caption px-3 py-2 text-sm">
+          <span class="font-bold">{{ character.name }}</span>
+          {% if character.series %}<span class="ml-2 opacity-80">({{ character.series.name }})</span>{% endif %}
+        </div>
+      </div>
+      <div class="p-3 flex-1 flex flex-col">
+        <a href="{% url 'character_detail' character.slug %}" class="mt-auto">View Profile</a>
+      </div>
+    </div>
+    {% empty %}
+      <div class="col-span-3 text-gray-400">No characters found.</div>
+    {% endfor %}
+  </div>
+
+  <h2 class="text-xl font-semibold mb-2">Images</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+    {% for image in images %}
+      <a href="{% url 'image_detail' image.id %}" class="glass p-1 rounded-lg block">
+        <div class="h-40 md:h-44 lg:h-48 overflow-hidden rounded-lg">
+          <img src="{{ image.file.url }}" alt="Image {{ forloop.counter }}" class="w-full h-full object-cover" loading="lazy" />
+        </div>
+      </a>
+    {% empty %}
+      <div class="col-span-6 text-gray-400">No images found.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.glass {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+</style>
+{% endblock %}

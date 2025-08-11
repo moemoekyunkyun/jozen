@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <!-- Breadcrumbs -->
+    {% include 'breadcrumbs.html' %}
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="glass rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 border border-red-500/30">
+        <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold mb-2 text-red-400">Delete Account</h1>
+      <p class="opacity-75">This action cannot be undone. Please read carefully.</p>
+    </div>
+
+    <!-- Warning Notice -->
+    <div class="bg-red-500/20 border border-red-500/30 text-red-300 p-6 rounded-lg mb-8">
+      <div class="flex items-start">
+        <svg class="w-6 h-6 mr-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <div>
+          <h3 class="font-bold mb-2">⚠️ Account Deletion Warning</h3>
+          <p class="mb-3">Deleting your account will permanently remove:</p>
+          <ul class="list-disc list-inside space-y-1 text-sm opacity-90">
+            <li>Your user profile and account information</li>
+            <li>All uploaded images and associated metadata</li>
+            <li>Your upload history and statistics</li>
+            <li>Any personal settings or preferences</li>
+          </ul>
+          <p class="mt-3 font-medium">This action is irreversible and cannot be undone.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Summary -->
+    <div class="glass p-6 rounded-lg mb-8">
+      <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        Account Summary
+      </h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+        <div class="p-4 bg-white/5 rounded-lg">
+          <div class="text-2xl font-bold text-blue-400">{{ user_stats.total_uploads }}</div>
+          <div class="text-sm opacity-75">Total Uploads</div>
+        </div>
+        <div class="p-4 bg-white/5 rounded-lg">
+          <div class="text-2xl font-bold text-green-400">{{ user_stats.approved_count }}</div>
+          <div class="text-sm opacity-75">Approved Images</div>
+        </div>
+        <div class="p-4 bg-white/5 rounded-lg">
+          <div class="text-2xl font-bold text-yellow-400">{{ user_stats.pending_count }}</div>
+          <div class="text-sm opacity-75">Pending Images</div>
+        </div>
+      </div>
+      
+      <div class="mt-4 text-sm opacity-75">
+        <span class="font-medium">Member since:</span> {{ user.date_joined|date:"F d, Y" }}
+      </div>
+    </div>
+
+    <!-- Deletion Form -->
+    <div class="glass p-8 rounded-lg border border-red-500/30">
+      <h3 class="text-lg font-semibold mb-6 text-red-400">Confirm Account Deletion</h3>
+      
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Username Confirmation -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium">{{ form.confirm_username.label }}</label>
+          {{ form.confirm_username }}
+          {% if form.confirm_username.errors %}
+          <div class="text-red-400 text-sm">{{ form.confirm_username.errors }}</div>
+          {% endif %}
+          {% if form.confirm_username.help_text %}
+          <div class="text-xs opacity-60">{{ form.confirm_username.help_text }}</div>
+          {% endif %}
+        </div>
+        
+        <!-- Confirmation Checkbox -->
+        <div class="space-y-2">
+          <div class="flex items-start">
+            {{ form.confirm_deletion }}
+            <label for="{{ form.confirm_deletion.id_for_label }}" class="text-sm font-medium">
+              {{ form.confirm_deletion.label }}
+            </label>
+          </div>
+          {% if form.confirm_deletion.errors %}
+          <div class="text-red-400 text-sm">{{ form.confirm_deletion.errors }}</div>
+          {% endif %}
+        </div>
+        
+        <!-- Final Warning -->
+        <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-lg">
+          <p class="text-sm text-red-300">
+            <strong>Last chance:</strong> Once you click "Delete Account", your account and all associated data will be permanently removed from our servers. This action cannot be reversed.
+          </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-4">
+          <button type="submit" class="flex-1 btn bg-red-600 hover:bg-red-700 text-white">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+            Delete Account Permanently
+          </button>
+          <a href="{% url 'user_profile' %}" class="btn">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m0 7h18"></path>
+            </svg>
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Alternative Options -->
+    <div class="glass p-6 rounded-lg mt-6">
+      <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Need Help?
+      </h3>
+      
+      <p class="text-sm opacity-75 mb-4">
+        If you're having issues with your account, consider these alternatives before deletion:
+      </p>
+      
+      <div class="space-y-2 text-sm">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m-2-2a2 2 0 00-2 2m2-2h2m-6 9a2 2 0 01-2-2V9a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-8z"></path>
+          </svg>
+          <a href="{% url 'user_password_change' %}" class="text-blue-400 hover:text-blue-300">Change your password</a>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <a href="{% url 'user_profile' %}" class="text-blue-400 hover:text-blue-300">Update your profile information</a>
+        </div>
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          <span class="opacity-75">Contact support if you need assistance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

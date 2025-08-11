@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">Site Settings</h1>
+      <div class="flex gap-2">
+        <a href="{% url 'admin_panel' %}" class="btn">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Settings Form -->
+      <div class="lg:col-span-2">
+        <div class="glass p-6 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">General Settings</h2>
+          <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            
+            <div class="space-y-4">
+              <div class="border border-white/10 rounded-lg p-4">
+                <div class="flex items-start">
+                  <div class="flex items-center h-5">
+                    {{ form.allow_self_registration }}
+                  </div>
+                  <div class="ml-3">
+                    <label for="{{ form.allow_self_registration.id_for_label }}" class="font-medium">
+                      Allow Self Registration
+                    </label>
+                    <div class="text-sm opacity-75 mt-1">
+                      Allow new users to register accounts on their own. If disabled, only administrators can create accounts.
+                    </div>
+                  </div>
+                </div>
+                {{ form.allow_self_registration.errors }}
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="submit" class="btn">Save Settings</button>
+              <button type="button" onclick="location.reload()" class="btn">Reset</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Additional Settings Preview -->
+        <div class="glass p-6 rounded-lg mt-6">
+          <h3 class="text-lg font-semibold mb-4">Future Settings</h3>
+          <div class="space-y-3 text-sm opacity-75">
+            <div class="flex justify-between">
+              <span>Site Title:</span>
+              <span>Jozen (Coming Soon)</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Max Upload Size:</span>
+              <span>25MB (Coming Soon)</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Auto-Approve Uploads:</span>
+              <span>Staff Only (Coming Soon)</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Public Registration:</span>
+              <span>{{ settings.allow_self_registration|yesno:"Enabled,Disabled" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Info -->
+      <div class="space-y-6">
+        <!-- Current Status -->
+        <div class="glass p-6 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4">Current Status</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="opacity-75">Registration:</span>
+              <span class="pill {{ settings.allow_self_registration|yesno:'bg-green-500/20 text-green-300,bg-red-500/20 text-red-300' }}">
+                {{ settings.allow_self_registration|yesno:"Open,Closed" }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="opacity-75">Admin Panel:</span>
+              <span class="pill bg-green-500/20 text-green-300">Active</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="opacity-75">Image Uploads:</span>
+              <span class="pill bg-green-500/20 text-green-300">Enabled</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help & Documentation -->
+        <div class="glass p-6 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4">Help & Tips</h3>
+          <div class="space-y-3 text-sm">
+            <div class="bg-blue-500/10 border border-blue-500/20 rounded p-3">
+              <h4 class="font-medium text-blue-300 mb-1">Registration Settings</h4>
+              <p class="opacity-75">
+                When registration is disabled, new users can only be created by administrators in the User Management section.
+              </p>
+            </div>
+            <div class="bg-yellow-500/10 border border-yellow-500/20 rounded p-3">
+              <h4 class="font-medium text-yellow-300 mb-1">Security Note</h4>
+              <p class="opacity-75">
+                Changes to site settings take effect immediately. Always test changes in a staging environment first.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass p-6 rounded-lg">
+          <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
+          <div class="space-y-2">
+            <a href="{% url 'admin_users' %}" class="block w-full btn-small text-center">
+              Manage Users
+            </a>
+            <a href="{% url 'admin_pending_uploads' %}" class="block w-full btn-small text-center">
+              Review Uploads
+            </a>
+            <a href="{% url 'admin_content_management' %}" class="block w-full btn-small text-center">
+              Manage Content
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.btn-small {
+  @apply px-3 py-2 text-sm rounded bg-white/10 hover:bg-white/20 transition-colors;
+}
+.form-checkbox {
+  @apply w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-2;
+}
+</style>
+{% endblock %}

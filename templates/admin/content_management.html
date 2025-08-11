@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold">Content Management</h1>
+      <div class="flex gap-2">
+        <a href="{% url 'admin_panel' %}" class="btn">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <!-- Content Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="glass p-6 rounded-lg text-center">
+        <div class="text-3xl font-bold text-blue-400 mb-2">{{ content_stats.series_count }}</div>
+        <div class="text-sm opacity-75">Series</div>
+      </div>
+      <div class="glass p-6 rounded-lg text-center">
+        <div class="text-3xl font-bold text-green-400 mb-2">{{ content_stats.groups_count }}</div>
+        <div class="text-sm opacity-75">Groups</div>
+      </div>
+      <div class="glass p-6 rounded-lg text-center">
+        <div class="text-3xl font-bold text-purple-400 mb-2">{{ content_stats.tags_count }}</div>
+        <div class="text-sm opacity-75">Tags</div>
+      </div>
+      <div class="glass p-6 rounded-lg text-center">
+        <div class="text-3xl font-bold text-pink-400 mb-2">{{ content_stats.characters_count }}</div>
+        <div class="text-sm opacity-75">Characters</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Quick Create Forms -->
+      <div class="space-y-6">
+        <!-- Create Series -->
+        <div class="glass p-6 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">Create Series</h2>
+          <form method="post" action="{% url 'admin_create_content' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="content_type" value="series">
+            <div>
+              <input type="text" name="name" placeholder="Series name" required class="w-full">
+            </div>
+            <div>
+              <textarea name="description" placeholder="Description" rows="3" class="w-full"></textarea>
+            </div>
+            <button type="submit" class="btn w-full">Create Series</button>
+          </form>
+        </div>
+
+        <!-- Create Group -->
+        <div class="glass p-6 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">Create Group</h2>
+          <form method="post" action="{% url 'admin_create_content' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="content_type" value="group">
+            <div>
+              <input type="text" name="name" placeholder="Group name" required class="w-full">
+            </div>
+            <div>
+              <textarea name="description" placeholder="Description" rows="3" class="w-full"></textarea>
+            </div>
+            <button type="submit" class="btn w-full">Create Group</button>
+          </form>
+        </div>
+
+        <!-- Create Tag -->
+        <div class="glass p-6 rounded-lg">
+          <h2 class="text-xl font-semibold mb-4">Create Tag</h2>
+          <form method="post" action="{% url 'admin_create_content' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="content_type" value="tag">
+            <div>
+              <input type="text" name="name" placeholder="Tag name" required class="w-full">
+            </div>
+            <button type="submit" class="btn w-full">Create Tag</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Content -->
+      <div class="space-y-6">
+        <!-- Recent Series -->
+        <div class="glass p-6 rounded-lg">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Recent Series</h3>
+            <a href="{% url 'admin_panel' %}" class="text-sm opacity-75 hover:opacity-100">View All</a>
+          </div>
+          {% if content_stats.recent_series %}
+          <div class="space-y-2">
+            {% for series in content_stats.recent_series %}
+            <div class="flex items-center justify-between p-3 bg-white/5 rounded">
+              <div>
+                <div class="font-medium">{{ series.name }}</div>
+                <div class="text-sm opacity-75">{{ series.description|truncatechars:50|default:"No description" }}</div>
+              </div>
+              <a href="{% url 'series_explore' series.slug %}" class="btn-small">View</a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 opacity-75">No series created yet</div>
+          {% endif %}
+        </div>
+
+        <!-- Recent Groups -->
+        <div class="glass p-6 rounded-lg">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Recent Groups</h3>
+            <a href="{% url 'admin_panel' %}" class="text-sm opacity-75 hover:opacity-100">View All</a>
+          </div>
+          {% if content_stats.recent_groups %}
+          <div class="space-y-2">
+            {% for group in content_stats.recent_groups %}
+            <div class="flex items-center justify-between p-3 bg-white/5 rounded">
+              <div>
+                <div class="font-medium">{{ group.name }}</div>
+                <div class="text-sm opacity-75">{{ group.description|truncatechars:50|default:"No description" }}</div>
+              </div>
+              <a href="{% url 'group_explore' group.slug %}" class="btn-small">View</a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 opacity-75">No groups created yet</div>
+          {% endif %}
+        </div>
+
+        <!-- Recent Tags -->
+        <div class="glass p-6 rounded-lg">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Recent Tags</h3>
+            <a href="{% url 'admin_panel' %}" class="text-sm opacity-75 hover:opacity-100">View All</a>
+          </div>
+          {% if content_stats.recent_tags %}
+          <div class="space-y-2">
+            {% for tag in content_stats.recent_tags %}
+            <div class="flex items-center justify-between p-3 bg-white/5 rounded">
+              <div>
+                <div class="font-medium">{{ tag.name }}</div>
+                <div class="text-sm opacity-75">Tag</div>
+              </div>
+              <a href="{% url 'tag_explore' tag.slug %}" class="btn-small">View</a>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 opacity-75">No tags created yet</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="glass p-6 rounded-lg mt-8">
+      <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="{% url 'character_create' %}" class="btn text-center">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          Add Character
+        </a>
+        <a href="{% url 'image_upload' %}" class="btn text-center">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          Upload Images
+        </a>
+        <a href="{% url 'admin_pending_uploads' %}" class="btn text-center">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Review Uploads
+        </a>
+        <a href="{% url 'character_list' %}" class="btn text-center">
+          <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          View Site
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.btn-small {
+  @apply px-3 py-1 text-sm rounded bg-white/10 hover:bg-white/20 transition-colors;
+}
+</style>
+{% endblock %}

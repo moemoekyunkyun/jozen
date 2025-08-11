@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Breadcrumbs -->
+    <nav class="mb-6 text-sm flex items-center gap-2">
+      <a href="{% url 'character_list' %}" class="flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        Home
+      </a>
+      <span class="opacity-50">/</span>
+      <a href="{% url 'image_gallery' %}" class="flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        Gallery
+      </a>
+      <span class="opacity-50">/</span>
+      <a href="{% url 'image_detail' image.id %}" class="flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        Image #{{ image.id }}
+      </a>
+      <span class="opacity-50">/</span>
+      <span class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+        Edit
+      </span>
+    </nav>
+
+    <!-- Header -->
+    <div class="glass p-8 rounded-lg mb-8">
+      <h1 class="text-3xl font-bold mb-2 flex items-center gap-3">
+        <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
+        Edit Image #{{ image.id }}
+      </h1>
+      <p class="opacity-75">Update the details and metadata for this image.</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-4">
+      {% for message in messages %}
+      <div class="p-3 rounded-lg {% if message.tags == 'success' %}bg-green-500/20 text-green-300{% elif message.tags == 'error' %}bg-red-500/20 text-red-300{% else %}bg-blue-500/20 text-blue-300{% endif %}">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Image Preview -->
+      <div class="glass p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Image Preview
+        </h2>
+        <div class="relative">
+          <img src="{{ image.file.url }}" alt="Image {{ image.id }}" class="w-full h-auto rounded-lg shadow-lg" />
+          <div class="absolute top-2 right-2 glass px-2 py-1 rounded text-xs opacity-75">
+            {{ image.width }}×{{ image.height }}
+          </div>
+        </div>
+        <div class="mt-4 text-sm space-y-1">
+          <div class="flex justify-between">
+            <span class="opacity-75">Uploaded:</span>
+            <span>{{ image.uploaded_at|date:"M d, Y" }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="opacity-75">By:</span>
+            <span>{{ image.uploader.username }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="opacity-75">Status:</span>
+            <span class="{% if image.is_approved %}text-green-400{% else %}text-yellow-400{% endif %}">
+              {{ image.is_approved|yesno:"Approved,Pending" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="glass p-6 rounded-lg">
+        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Edit Details
+        </h2>
+
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+          
+          {% if form.non_field_errors %}
+          <div class="bg-red-500/20 border border-red-500/30 text-red-300 p-4 rounded-lg">
+            {{ form.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <!-- Illustrator -->
+          <div>
+            <label class="block text-sm font-medium mb-2">
+              <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M13 5l4 4"></path>
+              </svg>
+              Illustrator / Artist
+            </label>
+            {{ form.illustrator }}
+            {% if form.illustrator.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.illustrator.errors }}</div>
+            {% endif %}
+            <div class="text-xs opacity-60 mt-1">The artist or illustrator who created this image</div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-sm font-medium mb-2">
+              <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.description.errors }}</div>
+            {% endif %}
+            <div class="text-xs opacity-60 mt-1">Optional description or context for the image</div>
+          </div>
+
+          <!-- Characters -->
+          <div>
+            <label class="block text-sm font-medium mb-2">
+              <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              Characters
+            </label>
+            <div id="character-selector">
+              <div id="character-pills" class="flex flex-wrap gap-2 mb-2"></div>
+              <div class="relative">
+                <input type="text" id="character-search" placeholder="Search characters..." class="w-full" />
+                <div id="character-dropdown" class="absolute top-full left-0 right-0 glass rounded-lg mt-1 hidden max-h-48 overflow-y-auto z-10"></div>
+              </div>
+            </div>
+            {% if form.characters.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.characters.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Tags -->
+          <div>
+            <label class="block text-sm font-medium mb-2">
+              <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 013 12V7a4 4 0 014-4z"></path>
+              </svg>
+              Tags
+            </label>
+            <div id="tag-selector">
+              <div id="tag-pills" class="flex flex-wrap gap-2 mb-2"></div>
+              <div class="relative">
+                <input type="text" id="tag-search" placeholder="Search tags..." class="w-full" />
+                <div id="tag-dropdown" class="absolute top-full left-0 right-0 glass rounded-lg mt-1 hidden max-h-48 overflow-y-auto z-10"></div>
+              </div>
+            </div>
+            {% if form.tags.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.tags.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Admin: Approval Status -->
+          {% if request.user.is_staff %}
+          <div class="border-t border-white/10 pt-6">
+            <h3 class="text-lg font-medium mb-4 flex items-center gap-2 text-yellow-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.96-.833-2.73 0L4.084 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+              Admin Settings
+            </h3>
+            <div class="flex items-center gap-3">
+              {{ form.is_approved }}
+              <label for="{{ form.is_approved.id_for_label }}" class="text-sm font-medium">
+                Approved for public viewing
+              </label>
+            </div>
+            {% if form.is_approved.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.is_approved.errors }}</div>
+            {% endif %}
+            <div class="text-xs opacity-60 mt-1">Only approved images are visible to public users</div>
+          </div>
+          {% endif %}
+
+          <!-- Action Buttons -->
+          <div class="flex gap-3 pt-6 border-t border-white/10">
+            <button type="submit" class="btn bg-blue-600 hover:bg-blue-700 text-white">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Save Changes
+            </button>
+            <a href="{% url 'image_detail' image.id %}" class="btn">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden form fields for character and tag selection -->
+<div style="display:none;">
+  {{ form.characters }}
+  {{ form.tags }}
+</div>
+
+<!-- Character and Tag picker JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Character picker
+  const characterSelector = {
+    selected: new Set(),
+    allCharacters: {{ all_characters|safe }},
+    
+    init() {
+      this.loadSelectedCharacters();
+      this.setupSearch('character');
+    },
+    
+    loadSelectedCharacters() {
+      const selectedIds = Array.from(document.querySelector('select[name="characters"]').selectedOptions)
+        .map(option => parseInt(option.value));
+      
+      selectedIds.forEach(id => {
+        const character = this.allCharacters.find(c => c.id === id);
+        if (character) {
+          this.selected.add(character);
+        }
+      });
+      this.renderPills();
+    },
+    
+    setupSearch(type) {
+      const searchInput = document.getElementById(`${type}-search`);
+      const dropdown = document.getElementById(`${type}-dropdown`);
+      
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        this.renderDropdown(query, type);
+      });
+      
+      searchInput.addEventListener('focus', (e) => {
+        this.renderDropdown(e.target.value.toLowerCase(), type);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest(`#${type}-selector`)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    },
+    
+    renderDropdown(query, type) {
+      const dropdown = document.getElementById(`${type}-dropdown`);
+      const items = type === 'character' ? this.allCharacters : tagSelector.allTags;
+      
+      const filtered = items.filter(item => 
+        item.name.toLowerCase().includes(query) && 
+        !this.selected.has(item)
+      );
+      
+      if (filtered.length > 0) {
+        dropdown.innerHTML = filtered.map(item => 
+          `<div class="p-2 hover:bg-white/10 cursor-pointer" data-id="${item.id}" data-name="${item.name}">
+            ${item.name}
+          </div>`
+        ).join('');
+        
+        dropdown.classList.remove('hidden');
+        
+        dropdown.querySelectorAll('[data-id]').forEach(el => {
+          el.addEventListener('click', () => {
+            this.addItem(item.find(i => i.id == el.dataset.id));
+            document.getElementById(`${type}-search`).value = '';
+            dropdown.classList.add('hidden');
+          });
+        });
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    },
+    
+    addItem(item) {
+      this.selected.add(item);
+      this.renderPills();
+      this.updateFormField();
+    },
+    
+    removeItem(item) {
+      this.selected.delete(item);
+      this.renderPills();
+      this.updateFormField();
+    },
+    
+    renderPills() {
+      const container = document.getElementById('character-pills');
+      container.innerHTML = Array.from(this.selected).map(character => 
+        `<span class="pill pill-blue flex items-center gap-1">
+          ${character.name}
+          <button type="button" class="ml-1 opacity-70 hover:opacity-100" onclick="characterSelector.removeItem({id: ${character.id}, name: '${character.name}'})">×</button>
+        </span>`
+      ).join('');
+    },
+    
+    updateFormField() {
+      const select = document.querySelector('select[name="characters"]');
+      Array.from(select.options).forEach(option => {
+        option.selected = Array.from(this.selected).some(c => c.id == option.value);
+      });
+    }
+  };
+  
+  // Tag picker (similar structure)
+  const tagSelector = {
+    selected: new Set(),
+    allTags: {{ all_tags|safe }},
+    
+    init() {
+      this.loadSelectedTags();
+      this.setupSearch('tag');
+    },
+    
+    loadSelectedTags() {
+      const selectedIds = Array.from(document.querySelector('select[name="tags"]').selectedOptions)
+        .map(option => parseInt(option.value));
+      
+      selectedIds.forEach(id => {
+        const tag = this.allTags.find(t => t.id === id);
+        if (tag) {
+          this.selected.add(tag);
+        }
+      });
+      this.renderPills();
+    },
+    
+    setupSearch(type) {
+      const searchInput = document.getElementById(`${type}-search`);
+      const dropdown = document.getElementById(`${type}-dropdown`);
+      
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        this.renderDropdown(query, type);
+      });
+      
+      searchInput.addEventListener('focus', (e) => {
+        this.renderDropdown(e.target.value.toLowerCase(), type);
+      });
+      
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest(`#${type}-selector`)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    },
+    
+    renderDropdown(query, type) {
+      const dropdown = document.getElementById(`${type}-dropdown`);
+      const items = this.allTags;
+      
+      const filtered = items.filter(item => 
+        item.name.toLowerCase().includes(query) && 
+        !this.selected.has(item)
+      );
+      
+      if (filtered.length > 0) {
+        dropdown.innerHTML = filtered.map(item => 
+          `<div class="p-2 hover:bg-white/10 cursor-pointer" data-id="${item.id}" data-name="${item.name}">
+            ${item.name}
+          </div>`
+        ).join('');
+        
+        dropdown.classList.remove('hidden');
+        
+        dropdown.querySelectorAll('[data-id]').forEach(el => {
+          el.addEventListener('click', () => {
+            this.addItem(items.find(i => i.id == el.dataset.id));
+            document.getElementById(`${type}-search`).value = '';
+            dropdown.classList.add('hidden');
+          });
+        });
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    },
+    
+    addItem(item) {
+      this.selected.add(item);
+      this.renderPills();
+      this.updateFormField();
+    },
+    
+    removeItem(item) {
+      this.selected.delete(item);
+      this.renderPills();
+      this.updateFormField();
+    },
+    
+    renderPills() {
+      const container = document.getElementById('tag-pills');
+      container.innerHTML = Array.from(this.selected).map(tag => 
+        `<span class="pill pill-pink flex items-center gap-1">
+          ${tag.name}
+          <button type="button" class="ml-1 opacity-70 hover:opacity-100" onclick="tagSelector.removeItem({id: ${tag.id}, name: '${tag.name}'})">×</button>
+        </span>`
+      ).join('');
+    },
+    
+    updateFormField() {
+      const select = document.querySelector('select[name="tags"]');
+      Array.from(select.options).forEach(option => {
+        option.selected = Array.from(this.selected).some(t => t.id == option.value);
+      });
+    }
+  };
+  
+  // Initialize both pickers
+  characterSelector.init();
+  tagSelector.init();
+  
+  // Make selectors globally available for pill removal
+  window.characterSelector = characterSelector;
+  window.tagSelector = tagSelector;
+});
+</script>
+{% endblock %}
