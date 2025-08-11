@@ -33,7 +33,7 @@ A Django-based web application for managing and displaying anime character galle
 ### Development Setup
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone [<your-repo-url>](https://github.com/moemoekyunkyun/jozen)
 cd booru
 
 # Start services
@@ -168,7 +168,7 @@ pre-commit run --all-files
 
 ## License
 
-[Add your license here]
+GPL V2
 
 ## Support
 
@@ -185,4 +185,3 @@ For issues and questions:
 - [ ] User collections and favorites
 - [ ] API rate limiting
 - [ ] Image CDN integration
-- [ ] Mobile app support
