@@ -121,4 +121,3 @@ For issues and questions:
 - [ ] API rate limiting
 - [ ] Image CDN integration
 - [ ] Mobile app support
-# jozen
